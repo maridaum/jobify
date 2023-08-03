@@ -3,6 +3,7 @@ import User from "../models/UserModel.js";
 import Job from "../models/JobModel.js";
 import cloudinary from "cloudinary";
 import { promises as fs } from "fs";
+import { formatImage } from "../middleware/multerMiddleware.js";
 
 const getCurrentUser = async (req, res) => {
   const user = await User.findOne({ _id: req.user.userId });
@@ -24,9 +25,13 @@ const updateUser = async (req, res) => {
   delete newUser.password;
 
   if (req.file) {
-    const res = await cloudinary.v2.uploader.upload(req.file.path);
-    //removes file if file is successfully uploaded to cloudinary
-    await fs.unlink(req.file.path);
+    const file = formatImage(req.file)
+    const res = await cloudinary.v2.uploader.upload(file);
+
+
+    //removes file if file is successfully uploaded to cloudinary. this line of code is for disk storage method. 
+    //await fs.unlink(req.file.path);
+    
     newUser.avatar = res.secure_url;
     newUser.avatarPublicId = res.public_id;
   }
